@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "file": "public-places.v1.json.gz",
+  "sha256": "303be2821dceb7a683404378f9752458871d18962d5f38d17ef48511cbfbd1c1",
+  "placeCount": 3091,
+  "categoryCount": 16,
+  "containsUserData": false
+}

@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+
+# next
+/.next
+/out
+
+# testing
+/coverage
+/playwright-report
+/test-results
+/.playwright
+/lighthouse-report
+*.tsbuildinfo
+
+# local data and secrets
+.env*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.credential*
+*.secret*
+
+# generated/runtime
+*.log
+.DS_Store
+prisma/*.db
+infra/runtime/
+infra/backups/
+infra/deploy-logs/
+/release/
+
+# IDE
+.idea/
+.vscode/

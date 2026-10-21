@@ -1,0 +1,10 @@
+PawMap motion logo
+
+Source: Project-provided PawMap motion asset
+Added: 2026-09-15
+SHA-256: 8D86BE99224A9FB94740BD93EB3E4FF3C328B62DDF7EF3C68A11886CE49741E2
+Usage: Authorized for this PawMap Thailand project. Retained as a
+source asset; the current interface uses a lightweight SVG loading indicator.
+
+The poster is a frame captured from the supplied video. The current SVG logo is
+a code-native minimal map-pin and paw mark for responsive interface use.

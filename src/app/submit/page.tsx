@@ -1,0 +1,15 @@
+import { PageShell } from '@/components/page-shell';
+import { SubmissionForm } from '@/features/submissions/submission-form';
+import { requireUser } from '@/lib/auth-guards';
+export const dynamic = 'force-dynamic';
+
+export default async function SubmitPage() {
+  await requireUser();
+  return (
+    <PageShell locale="th">
+      <main className="container-shell py-12">
+        <SubmissionForm locale="th" />
+      </main>
+    </PageShell>
+  );
+}

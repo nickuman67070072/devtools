@@ -1,0 +1,36 @@
+jenkins:
+  systemMessage: 'PawMap Thailand local-only CI — source and artifacts are restricted by pipeline policy.'
+  numExecutors: 2
+  mode: NORMAL
+  scmCheckoutRetryCount: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: '${JENKINS_ADMIN_ID}'
+          password: '${JENKINS_ADMIN_PASSWORD}'
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+unclassified:
+  location:
+    url: 'http://localhost:8080/'
+jobs:
+  - script: >
+      pipelineJob('pawmap-local') {
+        description('Manual local Git pipeline for PawMap Thailand')
+        parameters { stringParam('BRANCH', 'main', 'Local branch to verify and deploy') }
+        properties { disableConcurrentBuilds() }
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote { url('file:///workspace') }
+                branch('main')
+                extensions { cloneOptions { shallow(false); noTags(false) } }
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+      }

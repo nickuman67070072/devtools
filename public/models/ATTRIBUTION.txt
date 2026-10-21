@@ -1,0 +1,8 @@
+Project-provided Thailand 77 province GLB.
+SHA-256: 6ebcbf08f1eccd47ee6e4ba87f4ee167bd7155d501412aac07f53efd504b3ccb
+Boundary data copyright OpenStreetMap contributors, via Wambacher / geoBoundaries.
+Dataset THA-ADM1-36821470; represented year 2017. Geographic database licensed under Open Data Commons Open Database License 1.0 (ODbL).
+The supplied model is a derived, simplified, projected and extruded geographic database. Heights in PawMap indicate visible place counts, not terrain elevation.
+Province names metadata: Thailand Geography JSON, MIT, Copyright 2023-Present Joe Takara.
+The geographic database used to derive this model is available beside this notice as source-boundaries.geojson. It remains available under ODbL 1.0. Code and names license notices are provided alongside this file.
+The model is a bundled project asset. Its provenance states upstream repositories were used by the original package author. PawMap does not download those upstream repositories during setup, runtime or CI.

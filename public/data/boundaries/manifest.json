@@ -1,0 +1,18 @@
+{
+  "fetchedAt": "2026-09-05T20:37:03.729Z",
+  "sourceAgency": "กรมป้องกันและบรรเทาสาธารณภัย (ปภ.)",
+  "files": {
+    "provinces": {
+      "sourceUrl": "https://gis-portal.disaster.go.th/arcgis/rest/services/MapDX/DPM_TH_Boundary/MapServer/1/query?where=1%3D1&outFields=PROV_CODE%2CPROV_NAM_T%2CPROV_NAM_E%2CCentroid_x%2CCentroid_y&returnGeometry=true&outSR=4326&geometryPrecision=5&maxAllowableOffset=0.0005&f=geojson",
+      "recordCount": 77,
+      "sha256": "c05456e98b2f544fa3779420d5cfe88e79fc3d7a71098c20f0140a1a16252659",
+      "file": "provinces.geojson"
+    },
+    "districts": {
+      "sourceUrl": "https://gis-portal.disaster.go.th/arcgis/rest/services/MapDX/DPM_TH_Boundary/MapServer/2/query?where=1%3D1&outFields=PROV_CODE%2CAMP_CODE%2CPROV_NAM_T%2CPROV_NAM_E%2CAMP_NAM_T%2CAMP_NAM_E%2CCentroid_x%2CCentroid_y&returnGeometry=true&outSR=4326&geometryPrecision=5&maxAllowableOffset=0.0005&f=geojson",
+      "recordCount": 926,
+      "sha256": "ac362b08b6bed3cd2519c11605672bc13f9aff237687082dddb2686afe0fa028",
+      "file": "districts.geojson"
+    }
+  }
+}

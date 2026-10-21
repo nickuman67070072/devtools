@@ -1,0 +1,86 @@
+{
+  "navigation.language": ["tests/e2e/public.spec.ts: home supports Thai and English navigation"],
+  "home.hero.categories.removed-sections": [
+    "tests/e2e/public.spec.ts: home keeps the centered hero and exactly sixteen live categories"
+  ],
+  "home.categories.mobile-pagination": [
+    "tests/e2e/public.spec.ts: mobile categories use an accessible eight-item pager"
+  ],
+  "navigation.desktop-centered": [
+    "tests/e2e/public.spec.ts: desktop navigation is centered independently from account controls"
+  ],
+  "data-source.retired.redirected.omitted": [
+    "tests/e2e/public.spec.ts: retired data pages redirect home and public place responses omit sourceUrl"
+  ],
+  "map.controls.filters": [
+    "tests/e2e/public.spec.ts: map loads controls and filters without emergency or location actions",
+    "tests/e2e/public.spec.ts: explore removes retired controls and sanitizes their old URL parameters"
+  ],
+  "place.detail.guest-actions.return-url.responsive": [
+    "tests/e2e/public.spec.ts: place detail keeps all guest actions on one scrollable row and returns by slug"
+  ],
+  "map.views.osm.google-link": [
+    "tests/e2e/osm-map.spec.ts: OSM is lazy-loaded and markers link to Google only after user interaction",
+    "tests/e2e/osm-map.spec.ts: OSM provider failure falls back to local province boundaries"
+  ],
+  "authentication.sign-in.sign-out": [
+    "tests/e2e/auth.spec.ts: user can sign in, access profile, and sign out"
+  ],
+  "profile.update": ["tests/e2e/auth.spec.ts: user can sign in, access profile, and sign out"],
+  "authorization.direct-url": [
+    "tests/e2e/auth.spec.ts: protected and admin routes enforce role on direct navigation"
+  ],
+  "accessibility.axe": [
+    "tests/e2e/public.spec.ts: has no serious or critical accessibility violations"
+  ],
+  "loading.minimal.transparent.reduced-motion.fallback": [
+    "tests/e2e/brand-loading.spec.ts: PawMap branded loading"
+  ],
+  "visual.public.user.admin.responsive": [
+    "tests/e2e/visual-redesign.spec.ts: captures the redesigned route families"
+  ],
+  "submissions.draft.submit.moderate": [
+    "tests/integration/submission-workflow.test.ts",
+    "tests/e2e/submission.spec.ts: signed-in user can submit a place for review"
+  ],
+  "uploads.mime.size.authorization": ["tests/integration/upload-security.test.ts"],
+  "admin.crud.audit": ["tests/integration/admin-workflow.test.ts"],
+  "favorites.reviews.reports.verifications": ["tests/integration/community-workflow.test.ts"],
+  "meetups.discovery.location.filters.accessibility": [
+    "tests/e2e/meetups.spec.ts: Meetup discovery uses GPS only on click and supports a manual map point",
+    "tests/e2e/meetups.spec.ts: Meetup discovery stays accessible and fits desktop, tablet, and mobile",
+    "tests/e2e/meetups.spec.ts: place autocomplete debounces, ignores stale results, supports keyboard selection and retry",
+    "tests/integration/meetup-workflow.test.ts: Meetup discovery contract"
+  ],
+  "meetups.create.join.chat.leave.media": [
+    "tests/e2e/meetups.spec.ts: signed-in user can publish a Meetup at an approved place",
+    "tests/e2e/meetups.spec.ts: member joins, chats live, leaves, and loses access while public visitors cannot see members"
+  ],
+  "meetups.capacity.concurrent-join": [
+    "tests/e2e/meetups.spec.ts: two concurrent joins cannot overbook the final seat",
+    "tests/integration/meetup-workflow.test.ts: derives FULL from active membership and reopens when capacity is freed"
+  ],
+  "meetups.search.clear.query": [
+    "tests/integration/meetup-workflow.test.ts: searches activity text and restores all eligible results when the query is empty",
+    "tests/e2e/meetups.spec.ts: signed-in user can publish a Meetup at an approved place"
+  ],
+  "meetups.join.request.approval.auth": [
+    "tests/integration/meetup-join-requests.test.ts",
+    "tests/e2e/meetups.spec.ts: guests sign in before requesting and return to the same Meetup"
+  ],
+  "map.osm.individual-markers.pagination.refresh.visibility": [
+    "tests/e2e/osm-clusters.spec.ts",
+    "tests/e2e/osm-map.spec.ts",
+    "tests/unit/osm-data.test.ts",
+    "tests/integration/place-import.test.ts"
+  ],
+  "imports.review.publish.multicategory.pagination": [
+    "tests/unit/place-import.test.ts",
+    "tests/integration/place-import.test.ts",
+    "tests/e2e/place-import.spec.ts"
+  ],
+  "meetups.chat.notification.bubbles.scroll": [
+    "tests/integration/meetup-join-requests.test.ts: notifies the recipient of a new message, then respects read and block state",
+    "tests/e2e/meetups.spec.ts: chat bubbles and My Meetups lists stay usable with long conversations"
+  ]
+}

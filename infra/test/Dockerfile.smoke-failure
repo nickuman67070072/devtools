@@ -1,0 +1,10 @@
+FROM nginx:1.28-bookworm
+
+LABEL pawmap.project="pawmap-local" \
+      pawmap.purpose="deployment-smoke-fixture"
+
+COPY infra/test/nginx-smoke-failure.conf /etc/nginx/conf.d/default.conf
+
+RUN touch /var/run/nginx.pid \
+    && chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /etc/nginx/conf.d
+USER nginx

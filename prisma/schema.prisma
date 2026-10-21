@@ -1,0 +1,808 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubmissionStatus {
+  DRAFT
+  PENDING
+  NEEDS_REVISION
+  APPROVED
+  REJECTED
+}
+
+enum SubmissionKind {
+  CREATE
+  UPDATE
+}
+
+enum PlaceStatus {
+  PENDING
+  VERIFIED
+  STALE
+  TEMPORARILY_CLOSED
+  PERMANENTLY_CLOSED
+}
+
+enum DataSource {
+  USER_SUBMISSION
+  ADMIN
+  OPEN_DATA
+  OPENSTREETMAP
+}
+
+enum ConfidenceLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum PetType {
+  DOG
+  CAT
+  SMALL_PET
+  BIRD
+  EXOTIC
+}
+
+enum PetSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportReason {
+  INCORRECT_INFORMATION
+  TEMPORARILY_CLOSED
+  PERMANENTLY_CLOSED
+  DUPLICATE
+  INAPPROPRIATE_CONTENT
+  OTHER
+}
+
+enum VerificationKind {
+  COMMUNITY
+  OWNER
+  ADMIN
+}
+
+enum NotificationType {
+  SUBMISSION_APPROVED
+  SUBMISSION_REJECTED
+  SUBMISSION_NEEDS_REVISION
+  FAVORITE_UPDATED
+  SYSTEM
+  MEETUP
+}
+
+enum MeetupStatus {
+  OPEN
+  CLOSED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum MeetupMemberState {
+  ACTIVE
+  LEFT
+  KICKED
+}
+
+enum MeetupJoinRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
+  EXPIRED
+}
+
+enum MeetupMessageKind {
+  TEXT
+  IMAGE
+  SYSTEM
+}
+
+enum MeetupReportTarget {
+  MEETUP
+  USER
+  MESSAGE
+  IMAGE
+}
+
+enum MeetupReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE_CONTENT
+  SCAM
+  FAKE_MEETUP
+  DANGEROUS_BEHAVIOR
+  OTHER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          Role      @default(USER)
+  locale        String    @default("th")
+  suspendedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  accounts          Account[]
+  sessions          Session[]
+  submissions       Submission[]
+  reviews           Review[]
+  reviewImages      ReviewImage[]
+  favoriteCollections FavoriteCollection[]
+  favorites         Favorite[]
+  reports           Report[]
+  verifications     Verification[]
+  notifications     Notification[]
+  auditLogs         AuditLog[] @relation("AuditActor")
+  placeImages       PlaceImage[] @relation("PlaceImageUploader")
+  hostedMeetups     Meetup[] @relation("MeetupHost")
+  meetupMembers     MeetupMember[]
+  meetupJoinRequests MeetupJoinRequest[]
+  meetupBans        MeetupBan[]
+  meetupMessages    MeetupMessage[]
+  meetupReports     MeetupReport[]
+  blockedUsers      UserBlock[] @relation("Blocker")
+  blockedByUsers    UserBlock[] @relation("Blocked")
+
+  @@index([role])
+  @@index([suspendedAt])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  issuer                String?
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@unique([issuer, accountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model AuthVerification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("auth_verifications")
+}
+
+model Province {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  slug         String   @unique
+  nameTh       String
+  nameEn       String
+  regionTh     String?
+  regionEn     String?
+  centroidLat  Float
+  centroidLng  Float
+  bounds       Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  districts  District[]
+  places     Place[]
+  submissions Submission[]
+
+  @@index([nameTh])
+  @@index([nameEn])
+  @@map("provinces")
+}
+
+model District {
+  id          String   @id @default(cuid())
+  code        String
+  slug        String
+  nameTh      String
+  nameEn      String
+  provinceId  String
+  centroidLat Float?
+  centroidLng Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  province    Province @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  places      Place[]
+  submissions Submission[]
+
+  @@unique([provinceId, code])
+  @@unique([provinceId, slug])
+  @@index([provinceId])
+  @@map("districts")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  slug        String   @unique
+  nameTh      String
+  nameEn      String
+  description String?
+  color       String
+  icon        String
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  places      Place[]
+  submissions Submission[]
+  additionalPlaces Place[] @relation("AdditionalPlaceCategories")
+
+  @@index([isActive, sortOrder])
+  @@map("categories")
+}
+
+model Place {
+  id                    String          @id @default(cuid())
+  slug                  String          @unique
+  nameTh                String
+  nameEn                String?
+  descriptionTh         String
+  descriptionEn         String?
+  addressTh             String
+  addressEn             String?
+  postalCode            String?
+  latitude              Float
+  longitude             Float
+  phone                  String?
+  emergencyPhone        String?
+  website                String?
+  socialLinks            Json?
+  source                 DataSource
+  externalId             String?
+  status                 PlaceStatus      @default(PENDING)
+  confidenceLevel        ConfidenceLevel  @default(LOW)
+  trustScore             Int              @default(0)
+  trustFactors           Json?
+  lastVerifiedAt         DateTime?
+  isVisible              Boolean          @default(true)
+  isEmergency24Hours     Boolean          @default(false)
+  categoryDetails       Json?
+  averageRating          Float            @default(0)
+  reviewCount            Int              @default(0)
+  version                Int              @default(1)
+  provinceId             String
+  districtId             String?
+  categoryId             String
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  deletedAt              DateTime?
+
+  province      Province       @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  district      District?      @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images        PlaceImage[]
+  petRule       PetRule?
+  businessHours BusinessHour[]
+  submissions   Submission[]
+  reviews       Review[]
+  favorites     Favorite[]
+  reports       Report[]
+  verifications Verification[]
+  meetups       Meetup[]
+  additionalCategories Category[] @relation("AdditionalPlaceCategories")
+  importedRecords ImportedPlace[]
+
+  @@unique([source, externalId])
+  @@index([provinceId])
+  @@index([districtId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([latitude])
+  @@index([longitude])
+  @@index([provinceId, categoryId, status])
+  @@map("places")
+}
+
+model PlaceImage {
+  id           String   @id @default(cuid())
+  objectKey    String   @unique
+  altTh        String
+  altEn        String?
+  width        Int?
+  height       Int?
+  sortOrder    Int      @default(0)
+  isCover      Boolean  @default(false)
+  placeId      String
+  uploadedById String?
+  createdAt    DateTime @default(now())
+  place        Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  uploadedBy   User?    @relation("PlaceImageUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([placeId, sortOrder])
+  @@map("place_images")
+}
+
+model PetRule {
+  id                String    @id @default(cuid())
+  placeId           String    @unique
+  petTypes          PetType[]
+  petSizes          PetSize[]
+  indoorAllowed     Boolean   @default(false)
+  outdoorAllowed    Boolean   @default(true)
+  leashRequired     Boolean   @default(false)
+  carrierRequired   Boolean   @default(false)
+  strollerRequired  Boolean   @default(false)
+  diaperRequired    Boolean   @default(false)
+  freeEntry         Boolean   @default(true)
+  feeDescriptionTh  String?
+  feeDescriptionEn  String?
+  maximumWeightKg   Float?
+  maximumPetCount   Int?
+  advanceNotice     Boolean   @default(false)
+  hasParking        Boolean   @default(false)
+  hasDrinkingWater  Boolean   @default(false)
+  hasWasteArea      Boolean   @default(false)
+  hasRamp            Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  place             Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@map("pet_rules")
+}
+
+model BusinessHour {
+  id            String   @id @default(cuid())
+  placeId       String
+  weekday       Weekday
+  intervalOrder Int      @default(0)
+  opensAt       String?
+  closesAt      String?
+  isClosed      Boolean  @default(false)
+  is24Hours     Boolean  @default(false)
+  place         Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@unique([placeId, weekday, intervalOrder])
+  @@index([placeId, weekday])
+  @@map("business_hours")
+}
+
+model Submission {
+  id               String           @id @default(cuid())
+  kind             SubmissionKind   @default(CREATE)
+  status           SubmissionStatus @default(DRAFT)
+  proposedData     Json
+  originalSnapshot Json?
+  revision         Int              @default(1)
+  reviewedRevision Int?
+  adminMessage     String?
+  submittedAt      DateTime?
+  decidedAt        DateTime?
+  submitterId      String
+  targetPlaceId    String?
+  provinceId       String
+  districtId       String?
+  categoryId       String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+  submitter        User             @relation(fields: [submitterId], references: [id], onDelete: Restrict)
+  targetPlace      Place?           @relation(fields: [targetPlaceId], references: [id], onDelete: SetNull)
+  province         Province         @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  district         District?        @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  category         Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images           SubmissionImage[]
+
+  @@index([submitterId, status])
+  @@index([provinceId])
+  @@index([categoryId])
+  @@index([status, submittedAt])
+  @@map("submissions")
+}
+
+model SubmissionImage {
+  id           String     @id @default(cuid())
+  objectKey    String     @unique
+  altTh        String
+  altEn        String?
+  evidenceUrl  String?
+  sortOrder    Int        @default(0)
+  isCover      Boolean    @default(false)
+  submissionId String
+  createdAt    DateTime   @default(now())
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, sortOrder])
+  @@map("submission_images")
+}
+
+model Review {
+  id                    String   @id @default(cuid())
+  rating                Int
+  cleanlinessRating     Int
+  convenienceRating     Int
+  petFriendlinessRating Int
+  content               String
+  isHidden              Boolean  @default(false)
+  hiddenReason          String?
+  userId                String
+  placeId               String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  place                 Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  images                ReviewImage[]
+
+  @@unique([userId, placeId])
+  @@index([placeId, isHidden])
+  @@map("reviews")
+}
+
+model ReviewImage {
+  id        String   @id @default(cuid())
+  objectKey String   @unique
+  alt       String
+  reviewId  String
+  userId    String
+  createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([reviewId])
+  @@map("review_images")
+}
+
+model FavoriteCollection {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  favorites Favorite[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("favorite_collections")
+}
+
+model Favorite {
+  id           String              @id @default(cuid())
+  userId       String
+  placeId      String
+  collectionId String?
+  createdAt    DateTime            @default(now())
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place        Place               @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  collection   FavoriteCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, placeId, collectionId])
+  @@index([userId])
+  @@map("favorites")
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  reason      ReportReason
+  details     String
+  evidenceKey String?
+  status      ReportStatus @default(OPEN)
+  resolution  String?
+  reporterId  String
+  placeId     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Restrict)
+  place       Place        @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([placeId, reason])
+  @@map("reports")
+}
+
+model Verification {
+  id          String           @id @default(cuid())
+  kind        VerificationKind @default(COMMUNITY)
+  evidenceKey String?
+  evidenceUrl String?
+  note        String?
+  isConfirmed Boolean          @default(true)
+  userId      String
+  placeId     String
+  createdAt   DateTime         @default(now())
+  user        User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  place       Place            @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@index([placeId, createdAt])
+  @@index([userId])
+  @@map("place_verifications")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  titleTh   String
+  titleEn   String
+  bodyTh    String
+  bodyEn    String
+  link      String?
+  metadata  Json?
+  readAt    DateTime?
+  userId    String
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  reason     String?
+  ipHash     String?
+  createdAt  DateTime @default(now())
+  actor      User     @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  bucketKey   String
+  action      String
+  windowStart DateTime
+  count       Int      @default(1)
+  expiresAt   DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@unique([bucketKey, action, windowStart])
+  @@index([expiresAt])
+  @@map("rate_limit_buckets")
+}
+
+model Meetup {
+  id             String       @id @default(cuid())
+  title          String
+  description    String
+  rules          String?
+  coverObjectKey String?      @unique
+  status         MeetupStatus @default(OPEN)
+  startsAt       DateTime
+  endsAt         DateTime
+  maxMembers     Int
+  hostId         String
+  placeId        String
+  version        Int          @default(1)
+  reminderSentAt DateTime?
+  cancelledAt    DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  host           User         @relation("MeetupHost", fields: [hostId], references: [id], onDelete: Restrict)
+  place          Place        @relation(fields: [placeId], references: [id], onDelete: Restrict)
+  members        MeetupMember[]
+  joinRequests   MeetupJoinRequest[]
+  bans           MeetupBan[]
+  messages       MeetupMessage[]
+  reports        MeetupReport[]
+  notificationEvents MeetupNotificationEvent[]
+
+  @@index([status, startsAt])
+  @@index([placeId, startsAt])
+  @@index([hostId, createdAt])
+  @@map("meetups")
+}
+
+model MeetupMember {
+  id        String            @id @default(cuid())
+  meetupId  String
+  userId    String
+  state     MeetupMemberState @default(ACTIVE)
+  joinedAt  DateTime          @default(now())
+  leftAt    DateTime?
+  meetup    Meetup            @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([meetupId, userId])
+  @@index([meetupId, state])
+  @@index([userId, state])
+  @@map("meetup_members")
+}
+
+model MeetupJoinRequest {
+  id        String                  @id @default(cuid())
+  meetupId  String
+  userId    String
+  status    MeetupJoinRequestStatus @default(PENDING)
+  decidedAt DateTime?
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  meetup    Meetup                  @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+  user      User                    @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([meetupId, userId])
+  @@index([meetupId, status, createdAt])
+  @@index([userId, status, createdAt])
+  @@map("meetup_join_requests")
+}
+
+model MeetupBan {
+  id        String   @id @default(cuid())
+  meetupId  String
+  userId    String
+  reason    String?
+  createdAt DateTime @default(now())
+  meetup    Meetup   @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([meetupId, userId])
+  @@map("meetup_bans")
+}
+
+model MeetupMessage {
+  id         String            @id @default(cuid())
+  meetupId   String
+  authorId   String?
+  kind       MeetupMessageKind
+  text       String?
+  objectKey  String?           @unique
+  replyToId  String?
+  pinnedAt   DateTime?
+  deletedAt  DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  meetup     Meetup            @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+  author     User?             @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  replyTo    MeetupMessage?    @relation("MeetupReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies    MeetupMessage[]   @relation("MeetupReplies")
+
+  @@index([meetupId, createdAt, id])
+  @@index([meetupId, updatedAt])
+  @@map("meetup_messages")
+}
+
+model MeetupReport {
+  id         String             @id @default(cuid())
+  meetupId   String
+  reporterId String
+  target     MeetupReportTarget
+  targetId   String
+  reason     MeetupReportReason
+  details    String?
+  status     ReportStatus       @default(OPEN)
+  createdAt  DateTime           @default(now())
+  resolvedAt DateTime?
+  meetup     Meetup             @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+  reporter   User               @relation(fields: [reporterId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@index([meetupId, target])
+  @@map("meetup_reports")
+}
+
+model UserBlock {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("user_blocks")
+}
+
+model MeetupNotificationEvent {
+  id        String   @id @default(cuid())
+  meetupId  String
+  eventKey  String
+  createdAt DateTime @default(now())
+  meetup    Meetup   @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+
+  @@unique([meetupId, eventKey])
+  @@map("meetup_notification_events")
+}
+
+model PlaceImportBatch {
+  id          String   @id @default(cuid())
+  dataset     String
+  sha256      String   @unique
+  fileName    String
+  total       Int
+  excluded    Int
+  createdAt   DateTime @default(now())
+  records     ImportedPlace[]
+  @@map("place_import_batches")
+}
+
+model ImportedPlace {
+  id           String   @id @default(cuid())
+  dataset      String
+  externalId   String
+  batchId      String
+  name         String
+  provinceCode String?
+  categoryCodes String[]
+  payload      Json
+  warnings     String[]
+  status       SubmissionStatus @default(PENDING)
+  version      Int @default(1)
+  reviewedById String?
+  reviewedAt   DateTime?
+  reason       String?
+  placeId      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  batch        PlaceImportBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  place        Place? @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  @@unique([dataset, externalId])
+  @@index([status, provinceCode, createdAt])
+  @@map("imported_places")
+}
